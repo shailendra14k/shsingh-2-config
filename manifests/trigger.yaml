@@ -1,0 +1,66 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: shsingh-2
+spec:
+  params:
+    - default: master
+      description: The git revision
+      name: git-revision
+    - description: The git repository url
+      name: git-repo-url
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: shsingh-2-run-
+        labels:
+          backstage.io/kubernetes-id: shsingh-2
+      spec:
+        params:
+          - name: git-revision
+            value: $(tt.params.git-revision)
+        pipelineRef:
+          name: shsingh-2
+        serviceAccountName: pipeline
+        workspaces:
+          - name: source-dir
+            persistentVolumeClaim:
+              claimName: shsingh-2
+          - name: mvn-dir
+            persistentVolumeClaim:
+              claimName: shsingh-2-maven
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: shsingh-2
+spec:
+  serviceAccountName: pipeline
+  triggers:
+    - bindings:
+        - kind: ClusterTriggerBinding
+          ref: gitlab-push
+      name: trigger-1
+      template:
+        ref: shsingh-2
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: el-shsingh-2
+  labels:
+    app.kubernetes.io/instance: cicd-config
+    app.kubernetes.io/managed-by: EventListener
+    app.kubernetes.io/part-of: Triggers
+    eventlistener: shsingh-2
+  annotations:
+    openshift.io/host.generated: 'true'
+spec:
+  to:
+    kind: Service
+    name: el-shsingh-2
+    weight: 100
+  port:
+    targetPort: http-listener
+  wildcardPolicy: None

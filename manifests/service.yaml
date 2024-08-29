@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: shsingh-2
+  labels:
+    app: shsingh-2
+  annotations:
+    backstage.io/kubernetes-id: shsingh-2
+spec:
+  type: ClusterIP
+  selector:
+    app: shsingh-2
+  ports:
+    - port: 8080
+      protocol: TCP
+      name: http
